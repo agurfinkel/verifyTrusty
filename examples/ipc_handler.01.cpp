@@ -1,4 +1,5 @@
-// RUN: sea bpf -m64 -O3 --bmc=mono --horn-bv2=true  --inline  --horn-bv2-ptr-size=8 --horn-bv2-word-size=8 --log=opsem 
+// RUN: %sea bpf -m64 -O3 --bmc=mono --horn-bv2=true --inline  --horn-bv2-ptr-size=8 --horn-bv2-word-size=8 --log=opsem "%s" 2>&1 | OutputCheck %s 
+// CHECK-L: unsat
 /*
  * Based on code example on https://source.android.com/security/trusty/trusty-ref#example_of_a_trusted_application_server
  * structures seems to be working
