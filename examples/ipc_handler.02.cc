@@ -1,7 +1,9 @@
-// RUN: sea bpf -m64 -O3 --bmc=mono --horn-bv2=true  --inline  --horn-bv2-ptr-size=8 --horn-bv2-word-size=8 --log=opsem 
+// RUN: sea bpf -m64 -O3 --bmc=mono --horn-bv2=true --inline  --horn-bv2-ptr-size=8 --horn-bv2-word-size=8 --log=opsem
 /*
  * Based on code example on https://source.android.com/security/trusty/trusty-ref#example_of_a_trusted_application_server
- * structures seems to be working
+ * exploring accessing structure member by pointer
+ * interesting overflow situation in stubbed APIs which returns long
+ * e.g. assertion in line 148
  */
 
 
@@ -13,17 +15,24 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 // #include <trusty_ipc.h>
 #define LOG_TAG "echo_srv"
 #define TLOGE(fmt, ...) \
     fprintf(stderr, "%s: %d: " fmt, LOG_TAG, __LINE__, ##__VA_ARGS__)
 
 # define MAX_ECHO_MSG_SIZE 64
-# define NO_ERROR -1
+# define NO_ERROR 0
 # define ERR_NO_MSG -42
 # define ERR_TIMED_OUT -233
 // # define YES_ERROR -1
 extern "C" long nd(void);
+extern "C" long nd_read(void);
+extern "C" long nd_get(void);
+extern "C" long nd_put(void);
+extern "C" long nd_send(void);
+extern "C" long nd_get_len(void);
+extern "C" long nd_get_id(void);
 
 // struct def from documentation
 typedef struct iovec {
@@ -54,19 +63,19 @@ typedef struct uevent {
 /* Define stub APIs */
 long get_msg(uint32_t handle, ipc_msg_info_t *msg_info) {
  //   sassert(handle > 0);
-    long retval = nd();
-    //assume(retval == NO_ERROR || retval == ERR_NO_MSG || retval < 0); // limit return values to errors or NO_ERROR
+    long retval = nd_get();
+    size_t msg_len = (size_t) nd_get_len();
+    uint32_t msg_id = (uint32_t) nd_get_id();
+    assume(retval < INT_MAX && retval > INT_MIN); // removing this will cause assertion on line 148 to fail
     if (retval == NO_ERROR) {
-         size_t msg_len = (size_t) nd();
 	 assume(msg_len > 0);
-	 uint32_t msg_id = (uint32_t) nd();
 	 assume(msg_id > 0);
-	 msg_info->len = msg_len;
-	 msg_info->id = msg_id;
     } else {
-	 msg_info->len = 0;
-	 msg_info->id = 0;
+	 assume(msg_len == 0);
+	 assume(msg_id == 0);
     }
+    msg_info->len = msg_len;
+    msg_info->id = msg_id;
     sassert( (retval == NO_ERROR) == (msg_info->len > 0)  );
     return retval;
 }
@@ -75,21 +84,20 @@ long read_msg(uint32_t handle, uint32_t msg_id, uint32_t offset, ipc_msg_t *msg)
     // return Total number of bytes stored in the dst buffers on success;
     // a negative error otherwise
     //sassert(handle > 0 && msg_id > 0);
-    return nd();
+    return nd_read();
 }
 
 long send_msg(uint32_t handle, ipc_msg_t *msg) {
     //sassert(handle > 0);
     // Total number of bytes sent on success; a negative error otherwise
-    return nd();
+    return nd_send();
 }
 
 long put_msg(uint32_t handle, uint32_t msg_id) {
     //sassert(handle > 0 && msg_id > 0);
     // return NO_ERROR on success; a negative error otherwise
-    long retval = nd();
     //assume(retval == NO_ERROR || retval < 0);
-    return retval;
+    return nd_put();
 }
 
 long port_create(const char *path,
@@ -137,7 +145,8 @@ int handle_msg(handle_t chan) {
     return rc;
   }
   // at this point rc must be NO_ERROR
-  // sassert(msg_inf.id > 0);
+  sassert( (rc == NO_ERROR) == (msg_inf.len > 0)  );
+  //sassert(msg_inf.id > 0 && msg_inf.len > 0);
   /* read msg content */
   rc = read_msg(chan, msg_inf.id, 0, &msg);
   if (rc < 0) {
