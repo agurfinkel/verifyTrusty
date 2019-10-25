@@ -32,7 +32,7 @@ typedef struct iovec {
         size_t  len;
 } iovec_t;
 
-typedef uint32_t handle_t;
+typedef int32_t handle_t;
 typedef struct ipc_msg {
         uint     num_iov; /* number of iovs in this message */
         iovec_t  *iov;    /* pointer to iov array */
