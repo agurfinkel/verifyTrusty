@@ -1,9 +1,9 @@
 import yaml
 import json
 import os
-import subprocess
+from subprocess import Popen
 import shutil
-
+import subprocess
 
 SEA_YAML_FILE = 'sea.yaml'
 SRC_PATH = 'src_path'
@@ -23,7 +23,7 @@ def get_job_info(job_path):
     sea_options = None
     target = None
     with open(os.path.join(job_path, SEA_YAML_FILE)) as yf:
-        data = yaml.load(yf, Loader=yaml.FullLoader)
+        data = yaml.load(yf, Loader=yaml.SafeLoader)
         if data:
             src_path = data[SRC_PATH]
             sea_options = data[SEA_OPTIONS]
@@ -58,14 +58,18 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
     # append sea clang options
     command.extend(sea_options)
     command.append("-I{sea_dir}".format(sea_dir=sea_dir))
-    outfile = "{target}.ll".format(target=target)
+    outfile = "{target}.bc".format(target=target)
     command.append("-o {outfile}".format(outfile=outfile))
     command.append(target)
-    if dry:
-        print(" ".join(command))
-    else:
-        subprocess.run(command)
-
+    command_str = " ".join(command)
+    print(command_str)
+    if not dry:
+        clang_p = Popen(command_str, shell=True)
+        _, err = clang_p.communicate()
+        if not err: 
+            print("generated output bitcode in %s" % outfile)
+        else:
+            print("error generating bitcode: %s" % err)
 
 def parse_compile_commands():
     cc_dict = dict()
@@ -86,7 +90,7 @@ def parse_compile_commands():
 
 def main():
     sea_dir = get_seahorn_dir()
-    dry = True
+    dry = False
     if not sea_dir:
         if not dry:
             print('Please add sea executable to environment variables!')
