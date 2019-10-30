@@ -1,9 +1,9 @@
+import argparse
 import yaml
 import json
 import os
 from subprocess import Popen
 import shutil
-import subprocess
 
 SEA_YAML_FILE = 'sea.yaml'
 SRC_PATH = 'src_path'
@@ -62,8 +62,9 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
     command.append("-o {outfile}".format(outfile=outfile))
     command.append(target)
     command_str = " ".join(command)
-    print(command_str)
-    if not dry:
+    if dry:
+        print(command_str)
+    else:
         clang_p = Popen(command_str, shell=True)
         _, err = clang_p.communicate()
         if not err: 
@@ -89,8 +90,11 @@ def parse_compile_commands():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Generates LLVM IR bitcode for all jobs under seahorn/jobs")
+    parser.add_argument('--dry', action="store_true", default=False)
+    options = parser.parse_args()
     sea_dir = get_seahorn_dir()
-    dry = False
+    dry = options.dry
     if not sea_dir:
         if not dry:
             print('Please add sea executable to environment variables!')
