@@ -51,6 +51,7 @@ def get_seahorn_dir():
 
 def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False):
     command = [clang_cmd]
+    # append path to custom stubbed code
     command.append("-I{helper_dir}".format(helper_dir=HELPER_PATH))
     # remove first element: we want to use our version of clang instead of
     # trusty's prebuilt compiler
@@ -69,7 +70,7 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
     else:
         clang_p = Popen(command_str, shell=True)
         _, err = clang_p.communicate()
-        if not err: 
+        if not err and os.path.isfile(outfile):
             print("generated output bitcode in %s" % outfile)
         else:
             print("error generating bitcode: %s" % err)
