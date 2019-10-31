@@ -1,3 +1,3 @@
 src_path: "trusty/user/app/keymaster/ipc/keymaster_ipc.cpp"
-target: "keymaster_ipc.cpp"
+target: "keymaster_ipc_harness.cpp"
 sea_options: "-c -emit-llvm -D__SEAHORN__ -O1 -Xclang -disable-llvm-optzns -S"

@@ -40,7 +40,8 @@ Thumbs.db
 
 # seahorn generated files # 
 *.z3-trace
-
+*.bc
+*.ll
 # trusty repository contents fetched with repo #
 prebuilts/
 .repo/
@@ -52,3 +53,5 @@ system/
 tools/
 trusty/
 build-root/
+mainframer
+.mainframer/

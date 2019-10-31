@@ -12,6 +12,7 @@ TARGET = 'target'
 JOBS_DIR = 'jobs'
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 ROOT_PATH = os.path.dirname(DIR_PATH)
+HELPER_PATH = os.path.join(DIR_PATH, 'include')
 COMPILE_CMDS_FILE = 'compile_commands.json'
 
 def isexec(fpath):
@@ -50,6 +51,7 @@ def get_seahorn_dir():
 
 def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False):
     command = [clang_cmd]
+    command.append("-I{helper_dir}".format(helper_dir=HELPER_PATH))
     # remove first element: we want to use our version of clang instead of
     # trusty's prebuilt compiler
     # remove last element: not compiling the actual source, instead
