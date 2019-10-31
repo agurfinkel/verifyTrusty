@@ -6,6 +6,7 @@
 
 
 #include "seahorn/seahorn.h"
+#include "nondet.h"
 // #include <uapi/err.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -28,14 +29,14 @@
 # define ERR_NOT_VALID -24
 # define ERR_TIMED_OUT -233
 // # define YES_ERROR -1
-extern "C" long nd(void);
-extern "C" long nd_read(void);
-extern "C" long nd_get(void);
-extern "C" long nd_put(void);
-extern "C" long nd_send(void);
-extern "C" long nd_get_len(void);
-extern "C" long nd_get_id(void);
-extern "C" uint8_t nd_message_read(void);
+// extern "C" long nd(void);
+// extern "C" long nd_read(void);
+// extern "C" long nd_get(void);
+// extern "C" long nd_put(void);
+// extern "C" long nd_send(void);
+// extern "C" long nd_get_len(void);
+// extern "C" long nd_get_id(void);
+// extern "C" uint8_t nd_message_read(void);
 
 
 // simple stub of keymaster implementation of UniquePtr
