@@ -1,47 +1,8 @@
-# recommended ignores from github octocat
-# Compiled source #
-###################
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-
-# Logs and databases #
-######################
-*.log
-*.sql
-*.sqlite
-*.json
-
-# OS generated files #
-######################
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
 # seahorn generated files # 
 *.z3-trace
 *.bc
 *.ll
+
 # trusty repository contents fetched with repo #
 prebuilts/
 .repo/
@@ -53,5 +14,4 @@ system/
 tools/
 trusty/
 build-root/
-mainframer
-.mainframer/
+compile_commands.json
