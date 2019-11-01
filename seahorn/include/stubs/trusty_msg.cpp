@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+// trusty reference for definitions only
+#include <trusty_ipc.h> // -> ipc structs
+#include <uapi/err.h> // NO_ERROR definition
+
 #ifdef get_msg
 #undef get_msg
 #endif

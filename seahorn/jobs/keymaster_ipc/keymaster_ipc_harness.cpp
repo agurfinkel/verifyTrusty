@@ -22,9 +22,8 @@
 
 #include "trusty_keymaster.h"
 #include "trusty_logger.h"
-#include "stubs/trusty_msg.h"
-#include "stubs/logger.h"
 
+using namespace keymaster;
 
 typedef void (*event_handler_proc_t)(const uevent_t* ev, void* ctx);
 

@@ -8,11 +8,11 @@ import shutil
 SEA_YAML_FILE = 'sea.yaml'
 SRC_PATH = 'src_path'
 SEA_OPTIONS = 'sea_options'
-TARGET = 'target'
+TARGETS = 'targets'
 JOBS_DIR = 'jobs'
-DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-ROOT_PATH = os.path.dirname(DIR_PATH)
-HELPER_PATH = os.path.join(DIR_PATH, 'include')
+VERI_PATH = os.path.dirname(os.path.realpath(__file__))
+ROOT_PATH = os.path.dirname(VERI_PATH)
+HELPER_PATH = os.path.join(VERI_PATH, 'include')
 COMPILE_CMDS_FILE = 'compile_commands.json'
 
 def isexec(fpath):
@@ -22,14 +22,14 @@ def isexec(fpath):
 def get_job_info(job_path):
     src_path = None
     sea_options = None
-    target = None
+    targets = None
     with open(os.path.join(job_path, SEA_YAML_FILE)) as yf:
         data = yaml.load(yf, Loader=yaml.SafeLoader)
         if data:
             src_path = data[SRC_PATH]
             sea_options = data[SEA_OPTIONS]
-            target = data[TARGET]
-    return src_path, sea_options, target
+            targets = data[TARGETS]
+    return src_path, sea_options, targets
 
 def get_clang():
     clang_cmd = None
@@ -39,16 +39,23 @@ def get_clang():
             return clang_cmd
     return clang_cmd
 
-def get_seahorn_dir():
-    # Find full path to build/run/include
-    sea_dir = None
-    if 'SEAHORN' in os.environ:
+def get_sea():
+    sea = None
+    if 'SEAHORN' in os.environ and isexec(os.environ['SEAHORN']):
         sea = os.environ['SEAHORN']
+    return sea
+
+def get_seahorn_dir():
+    # Find full path to seahorn headers
+    sea_dir = None
+    sea = get_sea()
+    if sea:
         run_dir = os.path.dirname(os.path.dirname(sea))
         sea_dir = os.path.join(run_dir, 'include')
     return sea_dir
 
 
+# generate .bc file for main harness .cpp file and stubbed files
 def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False):
     command = [clang_cmd]
     # append path to custom stubbed code
@@ -74,6 +81,28 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
             print("generated output bitcode in %s" % outfile)
         else:
             print("error generating bitcode: %s" % err)
+
+# use sea clang to link everything into a single file
+def link_targets(targets, job_path, dry=False):
+    sea_cmd = get_sea()
+    if not sea_cmd:
+        print("sea not available, skipping link...")
+        return
+    outfile = os.path.join(job_path, "out.bc")
+    bc_targets = [
+        os.path.join(ROOT_PATH, "{target}.bc".format(target=t)) for t in targets
+    ]
+    command = [sea_cmd, 'clang', '-S', '-o', outfile, *bc_targets]
+    command_str = " ".join(command)
+    if dry:
+        print(command_str)
+    else:
+        sea_p = Popen(command_str, shell=True)
+        _, err = sea_p.communicate()
+        if not err and os.path.isfile(outfile):
+            print("linked output bitcode in %s" % outfile)
+        else:
+            print("error linking for %s: %s" % (job_path, err))
 
 def parse_compile_commands():
     cc_dict = dict()
@@ -115,21 +144,23 @@ def main():
         print("No compile commands available")
         return -1
     
-    full_jobs_path = os.path.join(DIR_PATH, JOBS_DIR)
+    full_jobs_path = os.path.join(VERI_PATH, JOBS_DIR)
     for job in os.listdir(full_jobs_path):
         job_path = os.path.join(full_jobs_path, job)
         if os.path.isdir(job_path):
-            src_path, sea_option, target = get_job_info(job_path)
-            if src_path and sea_option and target:
+            src_path, sea_option, targets = get_job_info(job_path)
+            if src_path and sea_option and targets:
                 compile_option = compile_commands.get(src_path).get('arguments')
-                full_target = os.path.join(job_path, target)
-                generate_bitcode(
-                    clang_cmd,
-                    sea_dir,
-                    full_target,
-                    sea_option.split(" "),
-                    compile_option,
-                    dry=dry)
+                for target in targets:
+                    target_path = os.path.join(ROOT_PATH, target)
+                    generate_bitcode(
+                        clang_cmd,
+                        sea_dir,
+                        target_path,
+                        sea_option.split(" "),
+                        compile_option,
+                        dry=dry)
+                link_targets(targets, job_path, dry=dry)
             else:
                 print("No src file or option found for %s. Skiping" % job_path)
     return 0
