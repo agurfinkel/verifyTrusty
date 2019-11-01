@@ -56,7 +56,7 @@ def get_seahorn_dir():
 
 
 # generate .bc file for main harness .cpp file and stubbed files
-def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False):
+def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False, verbose=False):
     command = [clang_cmd]
     # append path to custom stubbed code
     command.append("-I{helper_dir}".format(helper_dir=HELPER_PATH))
@@ -72,9 +72,9 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
     command.append("-o {outfile}".format(outfile=outfile))
     command.append(target)
     command_str = " ".join(command)
-    if dry:
+    if dry or verbose:
         print(command_str)
-    else:
+    if not dry:
         clang_p = Popen(command_str, shell=True)
         _, err = clang_p.communicate()
         if not err and os.path.isfile(outfile):
@@ -83,7 +83,7 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
             print("error generating bitcode: %s" % err)
 
 # use sea clang to link everything into a single file
-def link_targets(targets, job_path, dry=False):
+def link_targets(targets, job_path, dry=False, verbose=False):
     sea_cmd = get_sea()
     if not sea_cmd:
         print("sea not available, skipping link...")
@@ -94,9 +94,9 @@ def link_targets(targets, job_path, dry=False):
     ]
     command = [sea_cmd, 'clang', '-S', '-o', outfile, *bc_targets]
     command_str = " ".join(command)
-    if dry:
+    if dry or verbose:
         print(command_str)
-    else:
+    if not dry:
         sea_p = Popen(command_str, shell=True)
         _, err = sea_p.communicate()
         if not err and os.path.isfile(outfile):
@@ -124,9 +124,11 @@ def parse_compile_commands():
 def main():
     parser = argparse.ArgumentParser(description="Generates LLVM IR bitcode for all jobs under seahorn/jobs")
     parser.add_argument('--dry', action="store_true", default=False)
+    parser.add_argument('--verbose', action="store_true", default=False)
     options = parser.parse_args()
     sea_dir = get_seahorn_dir()
     dry = options.dry
+    verbose = options.verbose
     if not sea_dir:
         if not dry:
             print('Please add sea executable to environment variables!')
@@ -159,8 +161,9 @@ def main():
                         target_path,
                         sea_option.split(" "),
                         compile_option,
-                        dry=dry)
-                link_targets(targets, job_path, dry=dry)
+                        dry=dry,
+                        verbose=verbose)
+                link_targets(targets, job_path, dry=dry, verbose=verbose)
             else:
                 print("No src file or option found for %s. Skiping" % job_path)
     return 0
