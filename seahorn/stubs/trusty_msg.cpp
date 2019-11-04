@@ -7,18 +7,6 @@
 #include <trusty_ipc.h> // -> ipc structs
 #include <uapi/err.h> // NO_ERROR definition
 
-#ifdef get_msg
-#undef get_msg
-#endif
-#ifdef read_msg
-#undef read_msg
-#endif
-#ifdef send_msg
-#undef send_msg
-#endif
-#ifdef put_msg
-#undef put_msg
-#endif
 
 /* Redefine trusty messaging APIs */
 int get_msg(handle_t handle, ipc_msg_info_t *msg_info) {
