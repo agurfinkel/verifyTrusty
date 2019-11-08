@@ -2,6 +2,7 @@
 *.z3-trace
 *.bc
 *.ll
+*.dot
 
 # trusty repository contents fetched with repo #
 prebuilts/

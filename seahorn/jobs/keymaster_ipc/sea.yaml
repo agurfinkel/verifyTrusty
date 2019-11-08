@@ -1,5 +1,5 @@
 src_path: "trusty/user/app/keymaster/ipc/keymaster_ipc.cpp"
 targets:
-  - "seahorn/jobs/keymaster_ipc/keymaster_ipc.cpp"
+  - "seahorn/jobs/keymaster_ipc/keymaster_ipc_harness.cpp"
   - "seahorn/stubs/trusty_msg.cpp"
 sea_options: "-c -emit-llvm -D__SEAHORN__ -O1 -Xclang -disable-llvm-optzns -S"

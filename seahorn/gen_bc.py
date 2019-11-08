@@ -117,7 +117,7 @@ def parse_compile_commands():
             print("Nothing in compile commands db")
             return None
         for target in data:
-            cc_dict[target['file']] = target
+            cc_dict[target['file']] = target.get('arguments', [])
     return cc_dict
 
 
@@ -152,7 +152,7 @@ def main():
         if os.path.isdir(job_path):
             src_path, sea_option, targets = get_job_info(job_path)
             if src_path and sea_option and targets:
-                compile_option = compile_commands.get(src_path).get('arguments')
+                compile_option = compile_commands.get(src_path)
                 for target in targets:
                     target_path = os.path.join(ROOT_PATH, target)
                     generate_bitcode(

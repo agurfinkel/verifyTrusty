@@ -22,6 +22,7 @@
 
 #include "trusty_keymaster.h"
 #include "trusty_logger.h"
+#include "nondet.h"
 
 using namespace keymaster;
 
@@ -128,13 +129,15 @@ static long handle_msg(keymaster_chan_ctx* ctx) {
     return (int)in_msg->cmd;
 }
 
-
-//int main(void) {
-  	// long rc = nd();
-	// assume(rc >= 0);
-	// handle_t chan = (handle_t) rc;
-	// int res = handle_msg(chan);
-	// return res;
-//	return 0;
-//}
+int main(void) {
+    void* priv = nd_ptr();
+  	keymaster_chan_ctx* ctx = reinterpret_cast<keymaster_chan_ctx*>(priv);
+    // the only thing we test within handle_msg right now is ->chan
+    ctx->chan = (handle_t)nd_int();
+    int res = -1;
+    if (ctx->chan > 0) {
+    	res = handle_msg(ctx);
+    }
+	return res;
+}
 
