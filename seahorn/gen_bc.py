@@ -152,15 +152,18 @@ def main():
         if os.path.isdir(job_path):
             src_path, sea_option, targets = get_job_info(job_path)
             if src_path and sea_option and targets:
+                sea_options = sea_option.split(" ")
+                sea_options.append(
+                    "-I" + os.path.dirname(src_path)
+                )
                 compile_args = compile_commands.get(src_path)
-                # compile_args.remove('-g') # no debug info please
                 for target in targets:
                     target_path = os.path.join(ROOT_PATH, target)
                     generate_bitcode(
                         clang_cmd,
                         sea_dir,
                         target_path,
-                        sea_option.split(" "),
+                        sea_options,
                         compile_args,
                         dry=dry,
                         verbose=verbose)
