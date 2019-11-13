@@ -58,7 +58,6 @@ private:
     int id_;
 };
 
-
 static long handle_msg(keymaster_chan_ctx* ctx) {
     assume(ctx->chan > 0);
     handle_t chan = ctx->chan;
@@ -71,11 +70,10 @@ static long handle_msg(keymaster_chan_ctx* ctx) {
 
     // fatal error
     if (rc != NO_ERROR) {
-        LOG_E("failed (%d) to get_msg for chan (%d), closing connection", rc,
-              chan);
+        LOG_E("failed (%d) to get_msg for chan (%d), closing connection", rc,chan);
         return rc;
     }
-    // sassert( (rc == NO_ERROR) == (msg_inf.len > 0) );
+    sassert( (rc == NO_ERROR) == (msg_inf.len > 0) );
     MessageDeleter md(chan, msg_inf.id);
 
     // allocate msg_buf, with one extra byte for null-terminator
@@ -98,7 +96,7 @@ static long handle_msg(keymaster_chan_ctx* ctx) {
         LOG_E("%dfailed to read msg (%d)", rc, chan);
         return rc;
     }
-    LOG_D("Read %d-byte message", rc);
+    // LOG_D("Read %d-byte message", rc);
 
     // need at least 4 bytes as header
     if (((unsigned long)rc) < sizeof(keymaster_message)) {
@@ -131,13 +129,13 @@ static long handle_msg(keymaster_chan_ctx* ctx) {
 
 int main(void) {
     void* priv = nd_ptr();
-  	keymaster_chan_ctx* ctx = reinterpret_cast<keymaster_chan_ctx*>(priv);
+    keymaster_chan_ctx* ctx = reinterpret_cast<keymaster_chan_ctx*>(priv);
     // the only thing we test within handle_msg right now is ->chan
     ctx->chan = (handle_t)nd_int();
     int res = -1;
     if (ctx->chan > 0) {
-    	res = handle_msg(ctx);
+        res = handle_msg(ctx);
     }
-	return res;
+    return res;
 }
 

@@ -56,7 +56,7 @@ def get_seahorn_dir():
 
 
 # generate .bc file for main harness .cpp file and stubbed files
-def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=False, verbose=False):
+def generate_bitcode(clang_cmd, sea_dir, target, sea_args, comp_options, dry=False, verbose=False):
     command = [clang_cmd]
     # append path to custom stubbed code
     command.append("-I{helper_dir}".format(helper_dir=HELPER_PATH))
@@ -66,7 +66,7 @@ def generate_bitcode(clang_cmd, sea_dir, target, sea_options, comp_options, dry=
     # emit LLVM IR for <target>
     command.extend(comp_options[1:len(comp_options)-1])
     # append sea clang options
-    command.extend(sea_options)
+    command.extend(sea_args)
     command.append("-I{sea_dir}".format(sea_dir=sea_dir))
     outfile = "{target}.bc".format(target=target)
     command.append("-o {outfile}".format(outfile=outfile))
@@ -117,7 +117,7 @@ def parse_compile_commands():
             print("Nothing in compile commands db")
             return None
         for target in data:
-            cc_dict[target['file']] = target.get('arguments', [])
+            cc_dict[target['file']] = list(target.get('arguments', []))
     return cc_dict
 
 
@@ -152,7 +152,8 @@ def main():
         if os.path.isdir(job_path):
             src_path, sea_option, targets = get_job_info(job_path)
             if src_path and sea_option and targets:
-                compile_option = compile_commands.get(src_path)
+                compile_args = compile_commands.get(src_path)
+                # compile_args.remove('-g') # no debug info please
                 for target in targets:
                     target_path = os.path.join(ROOT_PATH, target)
                     generate_bitcode(
@@ -160,7 +161,7 @@ def main():
                         sea_dir,
                         target_path,
                         sea_option.split(" "),
-                        compile_option,
+                        compile_args,
                         dry=dry,
                         verbose=verbose)
                 link_targets(targets, job_path, dry=dry, verbose=verbose)
