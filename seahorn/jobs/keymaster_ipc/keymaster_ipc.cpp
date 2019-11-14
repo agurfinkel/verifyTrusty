@@ -740,7 +740,7 @@ static void dispatch_event(const uevent_t* ev) {
             reinterpret_cast<tipc_event_handler*>(ev->cookie);
     if (handler && handler->proc) {
         /* invoke it */
-        sassert(HandleTable::contains(ev->handle));
+        sassert(contains_handle(ev->handle));
         handler->proc(ev, handler->priv);
         return;
     }
@@ -749,7 +749,7 @@ static void dispatch_event(const uevent_t* ev) {
     //LOG_E("no handler for event (0x%x) with handle %d", ev->event, ev->handle);
 
     close(ev->handle);
-    sassert(!HandleTable::contains(ev->handle));
+    sassert(!contains_handle(ev->handle));
 
     return;
 }

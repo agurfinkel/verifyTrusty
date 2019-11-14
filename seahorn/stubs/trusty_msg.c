@@ -3,6 +3,7 @@
 #include "handle_table.h"
 #include <stdint.h>
 #include <sys/types.h>
+#include <stdlib.h>
 
 // trusty reference for definitions only
 #include <trusty_ipc.h> // -> ipc structs
@@ -31,7 +32,7 @@ ssize_t read_msg(handle_t handle, uint32_t msg_id, uint32_t offset, ipc_msg_t *m
     // return Total number of bytes stored in the dst buffers on success;
     // a negative error otherwise
     ssize_t res = (ssize_t)nd_int();
-    iovec* iv = msg->iov;
+    struct iovec* iv = msg->iov;
     if (res >= 0) {
         /*
         according to documentation, res < 0 means error
@@ -120,10 +121,7 @@ handle_t accept(handle_t port_handle, uuid_t* peer_uuid) {
     handle_t chan = (handle_t)nd_int();
     if (chan >= 0) {
         // define peer_uuid to a dummy value
-        *peer_uuid = {0x38ba0cdc,
-                          0xdf0e,
-                          0x11e4,
-                          {0x98, 0x69, 0x23, 0x3f, 0xb6, 0xae, 0x47, 0x95}};
+        peer_uuid = calloc(1, sizeof(uuid_t));
         add_handle(chan);
     }
     return chan;

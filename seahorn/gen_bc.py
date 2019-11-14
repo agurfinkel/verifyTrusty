@@ -124,11 +124,13 @@ def parse_compile_commands():
 def main():
     parser = argparse.ArgumentParser(description="Generates LLVM IR bitcode for all jobs under seahorn/jobs")
     parser.add_argument('--dry', action="store_true", default=False)
-    parser.add_argument('--verbose', action="store_true", default=False)
+    parser.add_argument('--verbose', '-v', action="store_true", default=False)
+    parser.add_argument('--jobs', nargs="+", type=str)
     options = parser.parse_args()
     sea_dir = get_seahorn_dir()
     dry = options.dry
     verbose = options.verbose
+    candidate_jobs = options.jobs
     if not sea_dir:
         if not dry:
             print('Please add sea executable to environment variables!')
@@ -147,7 +149,9 @@ def main():
         return -1
     
     full_jobs_path = os.path.join(VERI_PATH, JOBS_DIR)
-    for job in os.listdir(full_jobs_path):
+    if not candidate_jobs:
+        candidate_jobs = os.listdir(full_jobs_path)
+    for job in candidate_jobs:
         job_path = os.path.join(full_jobs_path, job)
         if os.path.isdir(job_path):
             src_path, sea_option, targets = get_job_info(job_path)
@@ -170,6 +174,8 @@ def main():
                 link_targets(targets, job_path, dry=dry, verbose=verbose)
             else:
                 print("No src file or option found for %s. Skiping" % job_path)
+        else:
+            print("%s is not a valid verification job!" % job)
     return 0
 
 

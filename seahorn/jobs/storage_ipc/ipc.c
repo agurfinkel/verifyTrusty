@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <assert.h>
 #include <lk/list.h>
 #include <stdlib.h>
@@ -22,6 +21,11 @@
 #include <uapi/err.h>
 
 #include "ipc.h"
+
+#include "seahorn/seahorn.h"
+#include "handle_table.h"
+#include <interface/storage/storage.h>
+#include "tipc_limits.h"
 
 #define MSG_BUF_MAX_SIZE 4096
 
@@ -366,6 +370,7 @@ static void dispatch_event(const uevent_t* ev) {
     assert(context);
     assert(context->evt_handler);
     assert(context->handle == ev->handle);
+    sassert(contains_handle(ev->handle));
 
     context->evt_handler(context, ev);
 }
@@ -443,4 +448,42 @@ void ipc_loop(void) {
             dispatch_event(&event);
         }
     }
+}
+
+static void basic_ipc_disconnect_handler(struct ipc_channel_context* context) {
+    free(context);
+}
+
+/*
+ * directly return a channel context with given uuid and chan handle
+ */
+static struct ipc_channel_context* mock_connect(struct ipc_port_context* parent_ctx,
+        const uuid_t* peer_uuid, handle_t chan_handle) {
+    struct ipc_channel_context* pctx = calloc(1, sizeof(pctx));
+    pctx->ops.on_disconnect = basic_ipc_disconnect_handler;
+    return pctx;
+}
+
+/*
+    mocks main
+ */
+int test_harness(void) {
+    struct ipc_port_context ctx = {
+            .ops = {.on_connect = mock_connect},
+    };
+    int rc = ipc_port_create(
+            &ctx, STORAGE_DISK_PROXY_PORT, 1, STORAGE_MAX_BUFFER_SIZE,
+            IPC_PORT_ALLOW_TA_CONNECT | IPC_PORT_ALLOW_NS_CONNECT);
+
+    if (rc < 0) {
+        return rc;
+    }
+
+    sassert(contains_handle(ctx.common.handle));
+
+    // ipc_loop();
+
+    ipc_port_destroy(&ctx);
+    sassert(!contains_handle(ctx.common.handle));
+    return 0;
 }
