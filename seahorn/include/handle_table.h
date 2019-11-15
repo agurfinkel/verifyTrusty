@@ -2,9 +2,7 @@
 #include <trusty_ipc.h> // for INVALID_IPC_HANDLE and handle_t
 #include "seahorn/seahorn.h"
 #include <stdlib.h>
-#ifndef __cplusplus
 #include <stdbool.h>
-#endif
 /*
 Single class for holding a map of handles
 */

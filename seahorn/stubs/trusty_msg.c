@@ -24,7 +24,6 @@ int get_msg(handle_t handle, ipc_msg_info_t *msg_info) {
     }
     msg_info->len = msg_len;
     msg_info->id = msg_id;
-    sassert( (retval == NO_ERROR) == (msg_info->len > 0) );
     return retval;
 }
 
@@ -102,7 +101,7 @@ handle_t port_create(const char* path,
 int set_cookie(handle_t handle, void* cookie) {
     // the handle should at least be stored in the handle table?
     // similar check can be seen in trusty/kernel/lib/trusty/uctx.c
-    sassert(contains_handle(handle));
+    // sassert(contains_handle(handle));
     if (!contains_handle(handle)) {
         return -1;
     }

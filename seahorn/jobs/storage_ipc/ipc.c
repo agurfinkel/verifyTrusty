@@ -32,20 +32,20 @@
 #define TLOG_TAG "ss-ipc"
 
 static void* msg_buf;
-static size_t msg_buf_size;
+// static size_t msg_buf_size;
 
 static void handle_channel(struct ipc_context* ctx, const struct uevent* ev);
 static void handle_port(struct ipc_context* ctx, const struct uevent* ev);
 
 static int maybe_grow_msg_buf(size_t new_max_size) {
-    if (new_max_size > msg_buf_size) {
+    // if (new_max_size > msg_buf_size) {
         uint8_t* tmp = realloc(msg_buf, new_max_size);
         if (tmp == NULL) {
             return ERR_NO_MEMORY;
         }
         msg_buf = tmp;
-        msg_buf_size = new_max_size;
-    }
+        // msg_buf_size = new_max_size;
+    // }
     return NO_ERROR;
 }
 
@@ -147,6 +147,8 @@ static int do_handle_msg(struct ipc_channel_context* ctx, const uevent_t* ev) {
               chan);
         return rc;
     }
+
+    sassert( (rc == NO_ERROR) == (msg_inf.len > 0));
 
     if (msg_inf.len > MSG_BUF_MAX_SIZE) {
         TLOGE("%s: message too large %zu\n", __func__, msg_inf.len);
@@ -450,24 +452,33 @@ void ipc_loop(void) {
     }
 }
 
-static void basic_ipc_disconnect_handler(struct ipc_channel_context* context) {
+void mock_ipc_disconnect_handler(struct ipc_channel_context* context) {
     free(context);
 }
 
+int mock_ipc_msg_handler(struct ipc_channel_context* context, void* msg, size_t msg_size)
+{
+    TLOGE("mock handling a message of length %d \n", msg_size);
+    sassert(msg_size <= MSG_BUF_MAX_SIZE);
+    return NO_ERROR;
+}
+
 /*
- * directly return a channel context with given uuid and chan handle
+ * directly return a channel context given uuid and chan handle
  */
-static struct ipc_channel_context* mock_connect(struct ipc_port_context* parent_ctx,
+struct ipc_channel_context* mock_connect(struct ipc_port_context* parent_ctx,
         const uuid_t* peer_uuid, handle_t chan_handle) {
     struct ipc_channel_context* pctx = calloc(1, sizeof(pctx));
-    pctx->ops.on_disconnect = basic_ipc_disconnect_handler;
+    pctx->ops.on_disconnect = mock_ipc_disconnect_handler;
+    pctx->ops.on_handle_msg = mock_ipc_msg_handler;
     return pctx;
 }
 
 /*
     mocks main
  */
-int test_harness(void) {
+int main(void) {
+    handle_table_init(INVALID_IPC_HANDLE, INVALID_IPC_HANDLE, INVALID_IPC_HANDLE);
     struct ipc_port_context ctx = {
             .ops = {.on_connect = mock_connect},
     };
@@ -481,9 +492,8 @@ int test_harness(void) {
 
     sassert(contains_handle(ctx.common.handle));
 
-    // ipc_loop();
+    ipc_loop();
 
     ipc_port_destroy(&ctx);
-    sassert(!contains_handle(ctx.common.handle));
     return 0;
 }
