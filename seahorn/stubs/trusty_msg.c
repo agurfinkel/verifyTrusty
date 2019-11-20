@@ -70,8 +70,6 @@ int wait_any(uevent_t* ev, uint32_t timeout_msecs) {
         ev->cookie = get_handle_cookie(ev->handle);
         assume(ev->handle > INVALID_IPC_HANDLE);
         ev->event = nd_unsigned();
-        // "Add" new handle to handle table
-        add_handle(ev->handle);
         assume(ev->event < (uint32_t)0x16); // max is (1111)2
     }
     return ret;
@@ -101,10 +99,10 @@ handle_t port_create(const char* path,
 int set_cookie(handle_t handle, void* cookie) {
     // the handle should at least be stored in the handle table?
     // similar check can be seen in trusty/kernel/lib/trusty/uctx.c
-    // sassert(contains_handle(handle));
-    if (!contains_handle(handle)) {
-        return -1;
-    }
+    sassert(contains_handle(handle));
+    // if (!contains_handle(handle)) {
+    //     return -1;
+    // }
     int ret = nd_int(); // model other results (including failure)
     assume(ret <= 0); // NO_ERROR on success, < 0 error code otherwise
     if (ret == 0) {
@@ -119,6 +117,7 @@ int set_cookie(handle_t handle, void* cookie) {
 handle_t accept(handle_t port_handle, uuid_t* peer_uuid) {
     handle_t chan = (handle_t)nd_int();
     if (chan >= 0) {
+        assume(!(chan & 0x2)); // is channel
         // define peer_uuid to a dummy value
         peer_uuid = calloc(1, sizeof(uuid_t));
         add_handle(chan);

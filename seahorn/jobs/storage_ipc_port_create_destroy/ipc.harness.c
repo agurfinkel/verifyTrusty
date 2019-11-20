@@ -32,19 +32,19 @@
 #define TLOG_TAG "ss-ipc"
 
 static void* msg_buf;
-// static size_t msg_buf_size;
+static size_t msg_buf_size;
 
 static void handle_channel(struct ipc_context* ctx, const struct uevent* ev);
 static void handle_port(struct ipc_context* ctx, const struct uevent* ev);
 
 static int maybe_grow_msg_buf(size_t new_max_size) {
-    if (new_max_size > 0) {
+    if (new_max_size > msg_buf_size) {
         uint8_t* tmp = realloc(msg_buf, new_max_size);
         if (tmp == NULL) {
             return ERR_NO_MEMORY;
         }
         msg_buf = tmp;
-    //     msg_buf_size = new_max_size;
+        msg_buf_size = new_max_size;
     }
     return NO_ERROR;
 }
