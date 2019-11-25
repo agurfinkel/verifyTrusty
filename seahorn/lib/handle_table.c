@@ -93,3 +93,27 @@ void set_handle_cookie(handle_t handle, void* cookie) {
         ht.chan_cookie = cookie;
     }
 }
+
+handle_t get_secure_port_handle(void) {
+    return ht.secure_port_handle;
+}
+
+handle_t get_non_secure_port_handle(void) {
+    return ht.non_secure_port_handle;
+}
+
+handle_t get_current_chan_handle(void) {
+    return ht.chan_handle;
+}
+
+bool is_secure_port_active(void) {
+    return ht.secure_port_handle_active;
+}
+bool is_non_secure_port_active(void) {
+    return ht.non_secure_port_handle_active;
+}
+
+bool is_current_chan_active(void) {
+    return ht.chan_handle_active;
+}
+

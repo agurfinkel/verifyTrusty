@@ -25,13 +25,22 @@ typedef struct handle_table {
     bool chan_handle_active;
     void* chan_cookie;
 } handle_table_t;
-
+/* lookuptable-like functions */
 void handle_table_init(handle_t secure_port, handle_t non_secure_port, handle_t channel);
 void add_handle(handle_t handle);
 void remove_handle(handle_t handle);
 bool contains_handle(handle_t handle);
 void* get_handle_cookie(handle_t handle);
 void set_handle_cookie(handle_t handle, void* cookie);
+/* Getters */
+handle_t get_secure_port_handle(void);
+handle_t get_non_secure_port_handle(void);
+handle_t get_current_chan_handle(void);
+
+bool is_secure_port_active(void);
+bool is_non_secure_port_active(void);
+bool is_current_chan_active(void);
+
 #ifdef __cplusplus
 }
 #endif

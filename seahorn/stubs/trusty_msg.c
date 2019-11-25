@@ -68,14 +68,18 @@ int put_msg(handle_t handle, uint32_t msg_id) {
 // wait for any kind of event, could be port or channel
 // current model only handles the channel event of the latest port event
 // if they happen to match
+// update: assume if success, only returns handles currently on the table
 int wait_any(uevent_t* ev, uint32_t timeout_msecs) {
     (void) timeout_msecs;
     int ret = nd_int();
     assume(ret <= NO_ERROR && ret >= ERR_USER_BASE);
     if (ret == NO_ERROR) {
+        handle_t cur_port_handle = is_secure_port_active() ?
+            get_secure_port_handle() : get_non_secure_port_handle();
+        handle_t cur_chan_handle = get_current_chan_handle();
         ev->handle = nd_int();
+        assume(ev->handle == cur_port_handle || ev->handle == cur_chan_handle);
         ev->cookie = get_handle_cookie(ev->handle);
-        assume(ev->handle > INVALID_IPC_HANDLE);
         ev->event = nd_unsigned();
         assume(ev->event < (uint32_t)0x16); // max is (1111)2
     }
@@ -109,10 +113,10 @@ handle_t port_create(const char* path,
 int set_cookie(handle_t handle, void* cookie) {
     // the handle should at least be stored in the handle table?
     // similar check can be seen in trusty/kernel/lib/trusty/uctx.c
-    sassert(contains_handle(handle));
-    // if (!contains_handle(handle)) {
-    //     return -1;
-    // }
+    // sassert(contains_handle(handle));
+    if (!contains_handle(handle)) {
+        return -1;
+    }
     int ret = nd_int(); // model other results (including failure)
     assume(ret <= 0); // NO_ERROR on success, < 0 error code otherwise
     if (ret == 0) {
