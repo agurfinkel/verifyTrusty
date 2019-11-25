@@ -1,0 +1,7 @@
+src_path: "trusty/user/app/storage/ipc.c"
+targets:
+  - "seahorn/jobs/storage_ipc_channel_nodes/ipc.harness.c"
+  - "seahorn/stubs/trusty_msg.c"
+  - "seahorn/stubs/realloc_override.c"
+  - "seahorn/lib/handle_table.c"
+sea_options: "-c -emit-llvm -D__SEAHORN__ -O1 -Xclang -disable-llvm-optzns -S"
