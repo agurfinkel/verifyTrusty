@@ -134,7 +134,9 @@ handle_t accept(handle_t port_handle, uuid_t* peer_uuid) {
     if (chan >= 0) {
         assume(!(chan & 0x2)); // is channel
         // define peer_uuid to a dummy value
-        peer_uuid = calloc(1, sizeof(uuid_t));
+        peer_uuid->time_low = nd_unsigned();
+        peer_uuid->time_mid = nd_short();
+        peer_uuid->time_hi_and_version = nd_short();
         add_handle(chan);
     }
     return chan;
