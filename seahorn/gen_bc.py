@@ -43,6 +43,8 @@ def get_sea():
     sea = None
     if 'SEAHORN' in os.environ and isexec(os.environ['SEAHORN']):
         sea = os.environ['SEAHORN']
+    elif 'SEA' in os.environ and isexec(os.environ['SEA']):
+        sea = os.environ['SEA']
     return sea
 
 def get_seahorn_dir():

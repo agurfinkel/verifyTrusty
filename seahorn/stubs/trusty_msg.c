@@ -71,18 +71,23 @@ int put_msg(handle_t handle, uint32_t msg_id) {
 // update: assume if success, only returns handles currently on the table
 int wait_any(uevent_t* ev, uint32_t timeout_msecs) {
     (void) timeout_msecs;
-    int ret = nd_int();
-    assume(ret <= NO_ERROR && ret >= ERR_USER_BASE);
-    if (ret == NO_ERROR) {
-        handle_t cur_port_handle = is_secure_port_active() ?
-            get_secure_port_handle() : get_non_secure_port_handle();
-        handle_t cur_chan_handle = get_current_chan_handle();
-        ev->handle = nd_int();
-        assume(ev->handle == cur_port_handle || ev->handle == cur_chan_handle);
-        ev->cookie = get_handle_cookie(ev->handle);
-        ev->event = nd_unsigned();
-        assume(ev->event < (uint32_t)0x16); // max is (1111)2
+    handle_t active_handle = nd_int();
+    if (is_current_chan_active())
+    {
+        assume(active_handle == get_current_chan_handle());
+    } else if (is_secure_port_active())
+    {
+        assume(active_handle == get_secure_port_handle());
+    } else if (is_non_secure_port_active())
+    {
+        assume(active_handle == get_non_secure_port_handle());
     }
+    ev->handle = active_handle;
+    ev->cookie = get_handle_cookie(ev->handle);
+    ev->event = nd_unsigned();
+    assume(ev->event < (uint32_t)0x16); // max is (1111)2
+    int ret = nd_int();
+    assume(ret <= NO_ERROR);
     return ret;
 }
 
@@ -99,11 +104,11 @@ handle_t port_create(const char* path,
     if (retval < 0)
         return retval; // return error message as is
     assume(retval & 0x2); // is port
-    if (flags & IPC_PORT_ALLOW_TA_CONNECT)
-    { // open secure port
+    if ((flags & IPC_PORT_ALLOW_TA_CONNECT) && !(flags & IPC_PORT_ALLOW_NS_CONNECT))
+    { // open secure port only
         assume(retval & 0x1);
-    } else
-    { // open non secure port
+    } else if (!(flags & IPC_PORT_ALLOW_TA_CONNECT) && (flags & IPC_PORT_ALLOW_NS_CONNECT))
+    { // open non secure port only
         assume(!(retval & 0x1));
     }
     add_handle(retval);
@@ -145,8 +150,6 @@ handle_t accept(handle_t port_handle, uuid_t* peer_uuid) {
 int close(handle_t handle) {
     int ret = nd_int();
     assume(ret <= 0); // "0 if success; a negative error otherwise"
-    if (ret == 0) {
-        remove_handle(handle);
-    }
+    remove_handle(handle);
     return ret;
 }

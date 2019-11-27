@@ -504,7 +504,32 @@ int main(void) {
     }
 
 
-    ipc_loop();
+    // first event should be port event
+    uevent_t event1;
+    event1.handle = INVALID_IPC_HANDLE;
+    event1.event = 0;
+    event1.cookie = NULL;
+    rc = wait_any(&event1, INFINITE_TIME);
+    if (rc < 0) {
+        TLOGE("wait_any failed (%d)\n", rc);
+        return rc;
+    }
+    if (rc == NO_ERROR) { /* got an event */
+        dispatch_event(&event1);
+    }
+    // get second event, could be either port or channel
+    uevent_t event2;
+    event2.handle = INVALID_IPC_HANDLE;
+    event2.event = 0;
+    event2.cookie = NULL;
+    rc = wait_any(&event2, INFINITE_TIME);
+    if (rc < 0) {
+        TLOGE("wait_any failed (%d)\n", rc);
+        return rc;
+    }
+    if (rc == NO_ERROR) { /* got an event */
+        dispatch_event(&event2);
+    }
 
     ipc_port_destroy(&ctx);
 
