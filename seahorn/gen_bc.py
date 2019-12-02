@@ -123,10 +123,29 @@ def parse_compile_commands():
     return cc_dict
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+def add_llvm_bool_arg(parser, *names, default=False):
+    dest_name = names[0] # rest are aliases
+    for name in names:
+        mutex_group = parser.add_mutually_exclusive_group(required=False)
+        mutex_group.add_argument('--' + name, dest=dest_name, type=str2bool, nargs='?', const=True)
+        mutex_group.add_argument('--no-' + name, dest=dest_name, type=lambda v:not(str2bool(v)), nargs='?', const=False)
+    parser.set_defaults(**{dest_name:default})
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generates LLVM IR bitcode for all jobs under seahorn/jobs")
-    parser.add_argument('--dry', action="store_true", default=False)
-    parser.add_argument('--verbose', '-v', action="store_true", default=False)
+    add_llvm_bool_arg(parser, 'dry')
+    add_llvm_bool_arg(parser, 'verbose', 'v')
     parser.add_argument('--jobs', nargs="+", type=str)
     options = parser.parse_args()
     sea_dir = get_seahorn_dir()
