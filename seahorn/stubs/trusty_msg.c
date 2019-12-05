@@ -11,6 +11,13 @@
 #include <uapi/err.h> // NO_ERROR definition
 
 
+static uint32_t cur_msg_id;
+static bool cur_msg_retired = true;
+
+static bool msg_retired(uint32_t msg_id) {
+    return msg_id == cur_msg_id && cur_msg_retired;
+}
+
 /* Redefine trusty messaging APIs */
 int get_msg(handle_t handle, ipc_msg_info_t *msg_info) {
     (void) handle;
@@ -20,6 +27,8 @@ int get_msg(handle_t handle, ipc_msg_info_t *msg_info) {
     if (retval == NO_ERROR) {
         assume(msg_len > 0);
         assume(msg_id > 0);
+        cur_msg_id = msg_id;
+        cur_msg_retired = false;
     } else {
         msg_len = 0;
         msg_id = 0;
@@ -33,20 +42,28 @@ ssize_t read_msg(handle_t handle, uint32_t msg_id, uint32_t offset, ipc_msg_t *m
     // return Total number of bytes stored in the dst buffers on success;
     // a negative error otherwise
     (void) handle;
-    (void) msg_id;
     (void) offset;
+    sassert(!msg_retired(msg_id));
     ssize_t res = nd_read_msg_ret();
-    struct iovec* iv = msg->iov;
+    struct iovec* iovecs = msg->iov;
+    size_t iovec_cnt = msg->num_iov;
     if (res >= 0) {
-        /* check whether buffer allocated is enough for incoming msg */
-        if (sea_ptr_size_stored(iv->iov_base)) {
-            sassert(sea_get_alloc_size(iv->iov_base) >= iv->iov_len);
-        }
-        /* simulate writing msg to buffer */
-        if (iv->iov_len > 0) {
-            uint8_t element = nd_msg_element();
-            assume(element > 0);
-            ((uint8_t*)(iv->iov_base))[0] = element;
+        // check for mismatch for iovec array len
+        // if (sea_arr_len_stored(iovecs))
+        //     sassert(sea_get_arr_len(iovecs) == iovec_cnt);
+        for (size_t i = 0; i < iovec_cnt; i++)
+        {
+            /* check whether buffer allocated is enough for incoming msg */
+            struct iovec iv = iovecs[i];
+            if (sea_ptr_size_stored(iv.iov_base)) {
+                sassert(sea_get_alloc_size(iv.iov_base) >= iv.iov_len);
+            }
+            /* simulate writing msg to buffer */
+            // if (iv.iov_len > 0) {
+            //     uint8_t element = nd_msg_element();
+            //     assume(element > 0);
+            //     ((uint8_t*)(iv.iov_base))[0] = element;
+            // }
         }
     }
     return res;
@@ -55,16 +72,46 @@ ssize_t read_msg(handle_t handle, uint32_t msg_id, uint32_t offset, ipc_msg_t *m
 ssize_t send_msg(handle_t handle, ipc_msg_t* msg) {
     // Total number of bytes sent on success; a negative error otherwise
     (void) handle;
-    (void) msg;
-    return nd_send_msg_ret();
+    ssize_t ret = nd_send_msg_ret();
+    struct iovec *iovecs = msg->iov;
+    size_t iovec_cnt = msg->num_iov;
+    if (ret >= 0) {
+        // check for mismatch for iovec array len
+        // if (sea_arr_len_stored(iovecs))
+        //     sassert(sea_get_arr_len(iovecs) == iovec_cnt);
+        for (size_t i = 0; i < iovec_cnt; i++)
+        {
+            /* check whether buffer allocated is enough for incoming msg */
+            struct iovec iv = iovecs[i];
+            if (sea_ptr_size_stored(iv.iov_base)) {
+                sassert(sea_get_alloc_size(iv.iov_base) >= iv.iov_len);
+            }
+        }
+    }
+    return ret;
 }
 
 int put_msg(handle_t handle, uint32_t msg_id) {
     // return NO_ERROR on success; a negative error otherwise
     //assume(retval == NO_ERROR || retval < 0);
     (void) handle;
-    (void) msg_id;
+    if (cur_msg_id == msg_id) {
+        cur_msg_retired = true;
+    }
     return nd_int();
+}
+
+int wait(handle_t handle, uevent_t* event, uint32_t timeout_msecs) {
+    (void) timeout_msecs;
+    int ret = nd_wait_ret();
+    if (ret == NO_ERROR)
+    {
+        event->handle = handle;
+        event->cookie = get_handle_cookie(event->handle);
+        event->event = nd_event_flag();
+        assume(event->event < (uint32_t)0x16); // max is (1111)2
+    }
+    return ret;
 }
 
 // wait for any kind of event, could be port or channel
