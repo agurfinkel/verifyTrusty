@@ -49,6 +49,9 @@ uint16_t nd_time_hi_n_ver(void);
 /* close */
 int nd_close_ret(void);
 
+/* wait */
+int nd_wait_ret(void);
+
 /* store allocated mem size */
 int nd_store_mem_size(void);
 size_t nd_get_alloc_size(void);
