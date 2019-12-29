@@ -42,7 +42,7 @@ def get_new_build_id(build_root):
         f.write(str(num))
         f.truncate()
         # Return buildid string: <user>@<hostname>-<num>
-        return os.getlogin() + "@" + os.uname()[1] + "-" + str(num)
+        return "usea@" + os.uname()[1] + "-" + str(num)
 
 
 def mkdir(path):
