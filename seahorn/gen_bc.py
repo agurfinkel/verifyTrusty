@@ -119,12 +119,13 @@ def parse_compile_commands():
             print("Nothing in compile commands db")
             return None
         for target in data:
-            args = list(target.get('arguments', []))
+            args = list(target.get("arguments", []))
             if not args:
                 # https://github.com/rizsotto/Bear/issues/196#issuecomment-352977255
-                command = target.get('command', "")
+                command = target.get("command", "")
                 args = list(command.split(" "))
-            cc_dict[target['file']] = args
+            if args:
+                cc_dict[target['file']] = args
     return cc_dict
 
 
@@ -187,6 +188,9 @@ def main():
                     "-I" + os.path.dirname(src_path)
                 )
                 compile_args = compile_commands.get(src_path)
+                if not compile_args:
+                    print("no compile args found for :" + job)
+                    continue
                 for target in targets:
                     target_path = os.path.join(ROOT_PATH, target)
                     generate_bitcode(
