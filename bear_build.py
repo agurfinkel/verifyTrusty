@@ -110,7 +110,7 @@ def build(args):
         if args.clang is not None:
             cmd += "; export CLANGBUILD=" + str(args.clang).lower()
         #cmd += "; nice make " + project + " -j " + str(args.jobs)
-        if project == "generic-arm32":
+        if project == "generic-arm32-debug":
             cmd += "; bear make " + project + " -j " + str(args.jobs) + " -S "
         # Call envsetup.  If it fails, abort.
         cmd = "source %s && (%s)" % (os.path.join(script_dir, "envsetup.sh"),
