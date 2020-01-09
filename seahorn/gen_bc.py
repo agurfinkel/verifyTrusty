@@ -187,7 +187,8 @@ def main():
                 sea_options.append(
                     "-I" + os.path.dirname(src_path)
                 )
-                compile_args = compile_commands.get(src_path)
+                compile_args = compile_commands.get(src_path) or \
+                    compile_commands.get(os.path.join(ROOT_PATH, src_path))
                 if not compile_args:
                     print("no compile args found for :" + job)
                     continue
