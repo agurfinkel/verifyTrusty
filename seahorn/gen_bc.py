@@ -33,7 +33,7 @@ def get_job_info(job_path):
 
 def get_clang():
     clang_cmd = None
-    for clang_ver in ['clang-mp-5.0', 'clang-5.0', 'clang']:
+    for clang_ver in ['clang-mp-10', 'clang-10', 'clang']:
         clang_cmd = shutil.which(clang_ver)
         if clang_cmd != None:
             return clang_cmd
