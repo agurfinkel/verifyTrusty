@@ -1,8 +1,10 @@
 #pragma once
-#include <trusty_ipc.h> // for INVALID_IPC_HANDLE and handle_t
 #include "seahorn/seahorn.h"
-#include <stdlib.h>
+
 #include <stdbool.h>
+#include <stdlib.h>
+
+#include <trusty_ipc.h> // for INVALID_IPC_HANDLE and handle_t
 /*
 Single class for holding a map of handles
 */
@@ -25,6 +27,7 @@ typedef struct handle_table {
     bool chan_handle_active;
     void* chan_cookie;
 } handle_table_t;
+
 /* lookuptable-like functions */
 void handle_table_init(handle_t secure_port, handle_t non_secure_port, handle_t channel);
 void add_handle(handle_t handle);
@@ -32,6 +35,7 @@ void remove_handle(handle_t handle);
 bool contains_handle(handle_t handle);
 void* get_handle_cookie(handle_t handle);
 void set_handle_cookie(handle_t handle, void* cookie);
+
 /* Getters */
 handle_t get_secure_port_handle(void);
 handle_t get_non_secure_port_handle(void);
