@@ -1,6 +1,7 @@
 src_path: "trusty/user/app/storage/ipc.c"
 targets:
   - "seahorn/jobs/storage_ipc_port_create_destroy/ipc.harness.c"
+  - "trusty/user/app/storage/ipc.c"
   - "seahorn/stubs/trusty_msg.c"
   - "seahorn/stubs/realloc_override.c"
   - "seahorn/lib/handle_table.c"
