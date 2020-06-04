@@ -23,6 +23,7 @@
 
 #include "ipc.h"
 
+#include "handle_table.h"
 #include "seahorn/seahorn.h"
 #define SEA_ASSERT sassert
 
@@ -362,7 +363,7 @@ int sync_ipc_send_msg(handle_t session,
     return read_len;
 }
 
-static void dispatch_event(const uevent_t* ev) {
+/* static */ void dispatch_event(const uevent_t* ev) {
     assert(ev);
 
     if (ev->event == IPC_HANDLE_POLL_NONE) {

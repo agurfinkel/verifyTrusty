@@ -66,9 +66,12 @@ sea_channel_connect(struct ipc_port_context *parent_ctx,
   return pctx;
 }
 
+/** defined in ipc.instrument.c */
+extern void dispatch_event(const uevent_t *ev);
+
 /**
-  entry point
- */
+   entry point
+*/
 int main(void) {
   handle_table_init(INVALID_IPC_HANDLE, INVALID_IPC_HANDLE, INVALID_IPC_HANDLE);
   struct ipc_port_context ctx = {
