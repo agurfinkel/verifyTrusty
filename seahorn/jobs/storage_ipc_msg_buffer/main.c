@@ -7,10 +7,13 @@
 
 #include "ipc.h"
 
+#include "tipc_limits.h"
+#include <interface/storage/storage.h>
+
 #include "handle_table.h"
 #include "seahorn/seahorn.h"
 
-
+/** entry point in ipc.c for even handling */
 extern void dispatch_event(const uevent_t *ev);
 
 void sea_ipc_disconnect_handler(
