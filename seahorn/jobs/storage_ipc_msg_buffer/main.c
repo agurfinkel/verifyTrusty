@@ -16,14 +16,13 @@
 /** entry point in ipc.c for even handling */
 extern void dispatch_event(const uevent_t *ev);
 
-void sea_ipc_disconnect_handler(
-    struct ipc_channel_context *context) {
+static void sea_ipc_disconnect_handler(struct ipc_channel_context *context) {
   if (context)
     free(context);
 }
 
-int sea_ipc_msg_handler(struct ipc_channel_context *context, void *msg,
-                         size_t msg_size) {
+static int sea_ipc_msg_handler(struct ipc_channel_context *context, void *msg,
+                               size_t msg_size) {
   // sassert(msg_size <= MSG_BUF_MAX_SIZE);
   struct iovec iov = {
       .iov_base = msg,
@@ -43,9 +42,9 @@ int sea_ipc_msg_handler(struct ipc_channel_context *context, void *msg,
 /*
  * directly return a channel context given uuid and chan handle
  */
-struct ipc_channel_context *
+static struct ipc_channel_context *
 sea_channel_connect(struct ipc_port_context *parent_ctx,
-                     const uuid_t *peer_uuid, handle_t chan_handle) {
+                    const uuid_t *peer_uuid, handle_t chan_handle) {
   struct ipc_channel_context *pctx = malloc(sizeof(pctx));
   pctx->ops.on_disconnect = sea_ipc_disconnect_handler;
   pctx->ops.on_handle_msg = sea_ipc_msg_handler;
