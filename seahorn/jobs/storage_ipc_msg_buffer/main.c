@@ -19,6 +19,36 @@ void sea_ipc_disconnect_handler(
     free(context);
 }
 
+int sea_ipc_msg_handler(struct ipc_channel_context *context, void *msg,
+                         size_t msg_size) {
+  // sassert(msg_size <= MSG_BUF_MAX_SIZE);
+  struct iovec iov = {
+      .iov_base = msg,
+      .iov_len = msg_size,
+  };
+  ipc_msg_t i_msg = {
+      .iov = &iov,
+      .num_iov = 1,
+  };
+  int rc = send_msg(context->common.handle, &i_msg);
+  if (rc < 0) {
+    return rc;
+  }
+  return NO_ERROR;
+}
+
+/*
+ * directly return a channel context given uuid and chan handle
+ */
+struct ipc_channel_context *
+sea_channel_connect(struct ipc_port_context *parent_ctx,
+                     const uuid_t *peer_uuid, handle_t chan_handle) {
+  struct ipc_channel_context *pctx = malloc(sizeof(pctx));
+  pctx->ops.on_disconnect = sea_ipc_disconnect_handler;
+  pctx->ops.on_handle_msg = sea_ipc_msg_handler;
+  return pctx;
+}
+
 /**
    verification entry point
  */
@@ -43,7 +73,6 @@ int main(void) {
   event1.cookie = NULL;
   rc = wait_any(&event1, INFINITE_TIME);
   if (rc < 0) {
-    TLOGE("wait_any failed (%d)\n", rc);
     return rc;
   }
   if (rc == NO_ERROR) { /* got an event */
@@ -56,7 +85,6 @@ int main(void) {
   event2.cookie = NULL;
   rc = wait_any(&event2, INFINITE_TIME);
   if (rc < 0) {
-    TLOGE("wait_any failed (%d)\n", rc);
     return rc;
   }
   if (rc == NO_ERROR) { /* got an event */
