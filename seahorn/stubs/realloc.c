@@ -1,6 +1,7 @@
 /** Verify Trusty */
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 /**
    Implementation of libc realloc()
