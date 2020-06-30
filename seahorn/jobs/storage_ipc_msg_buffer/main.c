@@ -45,7 +45,7 @@ static int sea_ipc_msg_handler(struct ipc_channel_context *context, void *msg,
 static struct ipc_channel_context *
 sea_channel_connect(struct ipc_port_context *parent_ctx,
                     const uuid_t *peer_uuid, handle_t chan_handle) {
-  struct ipc_channel_context *pctx = malloc(sizeof(pctx));
+  struct ipc_channel_context *pctx = malloc(sizeof(struct ipc_channel_context));
   pctx->ops.on_disconnect = sea_ipc_disconnect_handler;
   pctx->ops.on_handle_msg = sea_ipc_msg_handler;
   return pctx;
