@@ -48,7 +48,7 @@ If LLVM bitcode generation is successful, you should see `out.bc` files under `s
    (`seahorn/lib/handle_table.c`) works.
 
     - Build command: `python3 seahorn/gen_bc.py --jobs storage_ipc_port_create_destroy`
-    - Verification command: `$SEAHORN bpf -m64 -O3 --bmc=mono --horn-bv2=true  --horn-bv2-ptr-size=4 --horn-bv2-word-size=4 --no-lower-gv-init seahorn/jobs/storage_ipc_port_create_destroy/out.bc  --inline -S`
+    - Verification command: `$SEAHORN bpf -m32 -O3 --bmc=mono --horn-bv2=true  --horn-bv2-ptr-size=4 --horn-bv2-word-size=4 --no-lower-gv-init seahorn/jobs/storage_ipc_port_create_destroy/out.bc  --inline -S --devirt-functions=types`
     - Expected output: `unsat`, meaning no `sassert` is not violated.
 
 2. `storage_ipc_indirect_handlers` the `storage` application use function
@@ -57,7 +57,7 @@ If LLVM bitcode generation is successful, you should see `out.bc` files under `s
    its function devirtualization pass.
 
     - Build command: `python3 seahorn/gen_bc.py --jobs storage_ipc_indirect_handlers`
-    - Verification command: `$SEAHORN bpf -m64 -O3 --bmc=mono --horn-bv2=true  --horn-bv2-ptr-size=4 --horn-bv2-word-size=4 --no-lower-gv-init seahorn/jobs/storage_ipc_indirect_handlers/out.bc  --inline --devirt-functions  -S`
+    - Verification command: `$SEAHORN bpf -m32 -O3 --bmc=mono --horn-bv2=true  --horn-bv2-ptr-size=4 --horn-bv2-word-size=4 --no-lower-gv-init seahorn/jobs/storage_ipc_indirect_handlers/out.bc  --inline --devirt-functions  -S`
     - Expected output: `unsat`, meaning no `sassert` is not violated.
 
 3. `storage_ipc_msg_buffer` test potential buffer overflow on `msg_buf` by stubbing `realloc`.
@@ -65,8 +65,8 @@ If LLVM bitcode generation is successful, you should see `out.bc` files under `s
     - Build command: `python3 seahorn/gen_bc.py --jobs storage_ipc_msg_buffer`
     - Verification command: `$SEAHORN bpf -m32 -O3 --bmc=mono --horn-bv2=true  --horn-bv2-ptr-size=4 --horn-bv2-word-size=4 --no-lower-gv-init seahorn/jobs/storage_ipc_msg_buffer/out.bc  --inline --devirt-functions=sea-dsa  -S --externalize-addr-taken-functions`
     - Expected output: `unsat`, meaning no overflow is not possible. 
-    - Try removing `if (msg_inf.len > MSG_BUF_MAX_SIZE)` block on line `156` in
-      `ipc.harness.c`, and rebuild the verification example. Doing so should
+    - Try removing `return ERR_NOT_ENOUGH_BUFFER` block on line `150` in
+      `ipc.c`, and rebuild the verification example. Doing so should
       result in `sat` because now overflow is possible.
 
 
