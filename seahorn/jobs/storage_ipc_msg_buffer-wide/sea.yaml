@@ -1,4 +1,5 @@
 src_path: "trusty/user/app/storage/ipc.c"
+# note that targets are not in the same directory as this file!
 targets:
   - "seahorn/jobs/storage_ipc_msg_buffer/main.c"
   - "seahorn/jobs/storage_ipc_msg_buffer/ipc.c"
