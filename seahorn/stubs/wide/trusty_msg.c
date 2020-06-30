@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 // trusty reference for definitions only
 #include <trusty_ipc.h> // -> ipc structs
@@ -71,7 +72,7 @@ ssize_t read_msg(handle_t handle, uint32_t msg_id, uint32_t offset,
     for (size_t i = 0; i < iovec_cnt; i++) {
       /* check whether buffer allocated is enough for incoming msg */
       struct iovec iv = iovecs[i];
-      sassert(sea_is_dereferenceable(iv, iv.iov_len));
+      sassert(sea_is_dereferenceable(iv.iov_base, iv.iov_len));
     }
   }
   return res;
@@ -90,7 +91,7 @@ ssize_t send_msg(handle_t handle, ipc_msg_t *msg) {
     for (size_t i = 0; i < iovec_cnt; i++) {
       /* check whether buffer allocated is enough for incoming msg */
       struct iovec iv = iovecs[i];
-      sassert(sea_is_dereferenceable(iv, iv.iov_len));
+      sassert(sea_is_dereferenceable(iv.iov_base, iv.iov_len));
     }
   }
   return ret;
