@@ -17,6 +17,7 @@
 """Invoke trusty build system and run tests."""
 
 import argparse
+import getpass
 import multiprocessing
 import os
 import re
@@ -42,7 +43,9 @@ def get_new_build_id(build_root):
         f.write(str(num))
         f.truncate()
         # Return buildid string: <user>@<hostname>-<num>
-        return "usea@" + os.uname()[1] + "-" + str(num)
+        # Use getpass.getuser() to avoid non-portability/failure of
+        # os.getlogin()
+        return getpass.getuser() + "@" + os.uname()[1] + "-" + str(num)
 
 
 def mkdir(path):
@@ -88,7 +91,14 @@ def archive_build_file(args, project, src, dest=None, optional=False):
     if not dest:
         dest = src
     src = os.path.join(args.build_root, "build-" + project, src)
-    dest = os.path.join(args.archive, project + "-" + args.buildid + "." + dest)
+    # dest must be a fixed path for repeated builds of the same artifact
+    # for compatibility with prebuilt update scripts.
+    # Project is fine because that specifies what artifact is being looked
+    # for - LK for a specific target.
+    # BUILD_ID or feature selections that may change are not, because the
+    # prebuilt update script cannot predict the path at which the artifact
+    # will live.
+    dest = os.path.join(args.archive, project + "." + dest)
     copy_file(src, dest, optional=optional)
 
 
@@ -109,9 +119,7 @@ def build(args):
         cmd += "; export BUILDID=" + args.buildid
         if args.clang is not None:
             cmd += "; export CLANGBUILD=" + str(args.clang).lower()
-        #cmd += "; nice make " + project + " -j " + str(args.jobs)
-        if project == "generic-arm32":
-            cmd += "; bear make " + project + " -j " + str(args.jobs) + " -S "
+        cmd += "; nice bear make " + project + " -j " + str(args.jobs)
         # Call envsetup.  If it fails, abort.
         cmd = "source %s && (%s)" % (os.path.join(script_dir, "envsetup.sh"),
                                      cmd)
